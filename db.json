@@ -1,0 +1,119 @@
+{
+  "users": [
+    {
+      "id": "1",
+      "email": "admin@hotel.com",
+      "password": "admin123",
+      "role": "admin",
+      "username": "Admin",
+      "avatar": "",
+      "bio": ""
+    },
+    {
+      "id": "2",
+      "email": "receptionist@hotel.com",
+      "password": "recep123",
+      "role": "receptionist",
+      "username": "Mario Rossi",
+      "avatar": "",
+      "bio": ""
+    }
+  ],
+  "rooms": [
+    {
+      "id": "1",
+      "tipo": "singola",
+      "numeroStanza": 101,
+      "prezzoNotte": 80,
+      "occupata": true,
+      "descrizione": "Camera singola con vista giardino",
+      "lettoAggiuntivo": false
+    },
+    {
+      "id": "2",
+      "tipo": "doppia",
+      "numeroStanza": 102,
+      "prezzoNotte": 120,
+      "occupata": false,
+      "descrizione": "Camera doppia con letto aggiuntivo",
+      "lettoAggiuntivo": true
+    },
+    {
+      "id": "3",
+      "tipo": "suite",
+      "numeroStanza": 201,
+      "prezzoNotte": 250,
+      "occupata": true,
+      "descrizione": "Suite di lusso con vista mare",
+      "lettoAggiuntivo": false
+    },
+    {
+      "id": "4",
+      "tipo": "doppia",
+      "numeroStanza": 202,
+      "prezzoNotte": 120,
+      "occupata": false,
+      "descrizione": "Camera doppia con vista piscina",
+      "lettoAggiuntivo": false
+    }
+  ],
+  "parkings": [
+    {
+      "id": "1",
+      "tipo": "coperto",
+      "numero": "P01",
+      "prezzoNotte": 25,
+      "occupato": true,
+      "descrizione": "Posto auto coperto al piano interrato"
+    },
+    {
+      "id": "2",
+      "tipo": "coperto",
+      "numero": "P02",
+      "prezzoNotte": 25,
+      "occupato": false,
+      "descrizione": "Posto auto coperto al piano interrato"
+    },
+    {
+      "id": "3",
+      "tipo": "coperto",
+      "numero": "P03",
+      "prezzoNotte": 25,
+      "occupato": true,
+      "descrizione": "Posto auto coperto al piano interrato"
+    },
+    {
+      "id": "4",
+      "tipo": "coperto",
+      "numero": "P04",
+      "prezzoNotte": 25,
+      "occupato": false,
+      "descrizione": "Posto auto coperto al piano interrato"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "1",
+      "userId": 3,
+      "roomId": 3,
+      "parkingId": 3,
+      "checkIn": "2025-06-01",
+      "checkOut": "2025-06-05",
+      "notti": 4,
+      "totale": 1100,
+      "stato": "confermata"
+    },
+    {
+      "userId": "2",
+      "roomId": "1",
+      "parkingId": 1,
+      "checkIn": "2026-06-19",
+      "checkOut": "2026-06-21",
+      "notti": 2,
+      "totale": 210,
+      "stato": "confermata",
+      "id": "d8vMxLhNVtE"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
