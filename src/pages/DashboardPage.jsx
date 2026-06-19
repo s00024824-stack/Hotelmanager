@@ -1,6 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { insertRoom, removeRoom } from '../features/rooms/roomsSlice'
+import { insertRoom, removeRoom, addRoom } from '../features/rooms/roomsSlice'
 import { insertBookings, removeBooking } from '../features/bookings/bookingsSlice'
 import { insertParking } from '../features/parkings/parkingsSlice'
 
@@ -10,6 +10,17 @@ function DashboardPage() {
   const { items: rooms } = useSelector(state => state.rooms)
   const { items: bookings } = useSelector(state => state.bookings)
   const { items: parkings } = useSelector(state => state.parkings)
+
+  const [nuovaCamera, setNuovaCamera] = useState({
+    tipo: 'singola',
+    numeroStanza: '',
+    prezzoNotte: '',
+    descrizione: '',
+    occupata: false,
+    lettoAggiuntivo: false,
+  })
+  const [formCameraErrors, setFormCameraErrors] = useState({})
+  const [successoCamera, setSuccessoCamera] = useState(false)
 
   useEffect(() => {
     dispatch(insertRoom())
@@ -25,6 +36,34 @@ function DashboardPage() {
   }
 
   const totaleGuadagni = bookings.reduce((acc, booking) => acc + booking.totale, 0)
+
+  const gestisciInputCamera = (e) => {
+    const { name, value, type, checked } = e.target
+    setNuovaCamera(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
+    setFormCameraErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const gestisciNuovaCamera = async (e) => {
+    e.preventDefault()
+    const errors = {}
+    if (!nuovaCamera.numeroStanza) errors.numeroStanza = 'Numero stanza obbligatorio'
+    if (!nuovaCamera.prezzoNotte) errors.prezzoNotte = 'Prezzo obbligatorio'
+    if (!nuovaCamera.descrizione) errors.descrizione = 'Descrizione obbligatoria'
+
+    if (Object.keys(errors).length > 0) {
+      setFormCameraErrors(errors)
+      return
+    }
+
+    await dispatch(addRoom({
+      ...nuovaCamera,
+      numeroStanza: parseInt(nuovaCamera.numeroStanza),
+      prezzoNotte: parseFloat(nuovaCamera.prezzoNotte),
+    }))
+    setSuccessoCamera(true)
+    setNuovaCamera({ tipo: 'singola', numeroStanza: '', prezzoNotte: '', descrizione: '', occupata: false, lettoAggiuntivo: false })
+    setTimeout(() => setSuccessoCamera(false), 3000)
+  }
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -97,7 +136,7 @@ function DashboardPage() {
       {user?.role === 'admin' && (
         <>
           <h2>🛏️ Gestione Camere</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
             <thead>
               <tr style={{ background: '#1a1a2e', color: 'white' }}>
                 <th style={{ padding: '0.7rem', textAlign: 'left' }}>Stanza</th>
@@ -124,6 +163,54 @@ function DashboardPage() {
               ))}
             </tbody>
           </table>
+
+          <h2>➕ Aggiungi Nuova Camera</h2>
+          <form onSubmit={gestisciNuovaCamera} style={{ maxWidth: '500px' }}>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Tipo camera</label>
+              <select name="tipo" value={nuovaCamera.tipo} onChange={gestisciInputCamera}
+                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }}>
+                <option value="singola">Singola</option>
+                <option value="doppia">Doppia</option>
+                <option value="suite">Suite</option>
+              </select>
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Numero stanza</label>
+              <input type="number" name="numeroStanza" value={nuovaCamera.numeroStanza}
+                onChange={gestisciInputCamera}
+                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }} />
+              {formCameraErrors.numeroStanza && <span style={{ color: 'red' }}>{formCameraErrors.numeroStanza}</span>}
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Prezzo per notte (€)</label>
+              <input type="number" name="prezzoNotte" value={nuovaCamera.prezzoNotte}
+                onChange={gestisciInputCamera}
+                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }} />
+              {formCameraErrors.prezzoNotte && <span style={{ color: 'red' }}>{formCameraErrors.prezzoNotte}</span>}
+            </div>
+            <div style={{ marginBottom: '1rem' }}>
+              <label>Descrizione</label>
+              <textarea name="descrizione" value={nuovaCamera.descrizione}
+                onChange={gestisciInputCamera} rows={3}
+                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }} />
+              {formCameraErrors.descrizione && <span style={{ color: 'red' }}>{formCameraErrors.descrizione}</span>}
+            </div>
+            {nuovaCamera.tipo === 'doppia' && (
+              <div style={{ marginBottom: '1rem' }}>
+                <label>
+                  <input type="checkbox" name="lettoAggiuntivo" checked={nuovaCamera.lettoAggiuntivo}
+                    onChange={gestisciInputCamera} style={{ marginRight: '0.5rem' }} />
+                  Letto aggiuntivo (+€20/notte)
+                </label>
+              </div>
+            )}
+            {successoCamera && <p style={{ color: 'green' }}>✅ Camera aggiunta con successo!</p>}
+            <button type="submit"
+              style={{ width: '100%', padding: '0.7rem', cursor: 'pointer', background: '#1a1a2e', color: 'white', border: 'none', borderRadius: '4px' }}>
+              Aggiungi Camera
+            </button>
+          </form>
         </>
       )}
     </div>
