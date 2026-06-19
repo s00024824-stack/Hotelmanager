@@ -13,6 +13,18 @@ export const insertRoom = createAsyncThunk(
   }
 )
 
+export const addRoom = createAsyncThunk(
+  'rooms/add',
+  async (roomData, { rejectWithValue }) => {
+    try {
+      const response = await localApi.post('/rooms', roomData)
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  }
+)
+
 export const removeRoom = createAsyncThunk(
   'rooms/remove',
   async (Id, { rejectWithValue }) => {
@@ -54,7 +66,9 @@ const roomsSlice = createSlice({
         state.status = 'failed'
         state.error = action.payload
       })
-      
+      .addCase(addRoom.fulfilled, (state, action) => {
+        state.items.push(action.payload)
+      })
       .addCase(removeRoom.fulfilled, (state, action) => {
         state.items = state.items.filter(r => r.id !== action.payload)
       })

@@ -28,7 +28,9 @@ npm run server
 npm run dev
 Apri il browser su http://localhost:5173
 👥 Credenziali di accesso
-RuoloEmailPasswordAdminadmin@hotel.comadmin123Receptionistreceptionist@hotel.comrecep123
+Ruolo Email Password 
+Admin : admin@hotel.com  pass: admin123
+Receptionist:receptionist@hotel.com pass: recep123
 📄 Funzionalità
 
 Login con autenticazione fake e 2 ruoli (Admin, Receptionist)
