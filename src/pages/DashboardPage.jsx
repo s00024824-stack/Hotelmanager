@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
-import { insertRoom, removeRoom, addRoom } from '../features/rooms/roomsSlice'
-import { insertBookings, removeBooking } from '../features/bookings/bookingsSlice'
+import { insertRoom, removeRoom, addRoom, updateRoom } from '../features/rooms/roomsSlice'
+import { insertBookings, removeBooking, checkInBooking, checkOutBooking } from '../features/bookings/bookingsSlice'
 import { insertParking } from '../features/parkings/parkingsSlice'
+import { insertGuests } from '../features/guests/guestsSlice'
 
 function DashboardPage() {
   const dispatch = useDispatch()
@@ -10,32 +11,32 @@ function DashboardPage() {
   const { items: rooms } = useSelector(state => state.rooms)
   const { items: bookings } = useSelector(state => state.bookings)
   const { items: parkings } = useSelector(state => state.parkings)
+  const { items: guests } = useSelector(state => state.guests)
 
   const [nuovaCamera, setNuovaCamera] = useState({
-    tipo: 'singola',
-    numeroStanza: '',
-    prezzoNotte: '',
-    descrizione: '',
-    occupata: false,
-    lettoAggiuntivo: false,
+    tipo: 'singola', numeroStanza: '', prezzoNotte: '', descrizione: '', occupata: false, lettoAggiuntivo: false,
   })
   const [formCameraErrors, setFormCameraErrors] = useState({})
   const [successoCamera, setSuccessoCamera] = useState(false)
+
+  const [filtroStato, setFiltroStato] = useState('confermata')
+  const [checkinAperto, setCheckinAperto] = useState(null)
+  const [datiDocumento, setDatiDocumento] = useState({
+    dataNascita: '', luogoNascita: '', indirizzo: '', cittadinanza: '',
+    tipoDocumento: "Carta d'identità", numeroDocumento: '', luogoRilascio: '',
+  })
 
   useEffect(() => {
     dispatch(insertRoom())
     dispatch(insertBookings())
     dispatch(insertParking())
+    dispatch(insertGuests())
   }, [dispatch])
 
-  const calcolaTotale = (camera, notti) => {
-    let totale = camera.prezzoNotte * notti
-    if (camera.tipo === 'doppia' && camera.lettoAggiuntivo) totale += 20 * notti
-    if (camera.tipo === 'suite') totale += 50
-    return totale
-  }
-
   const totaleGuadagni = bookings.reduce((acc, booking) => acc + booking.totale, 0)
+
+  const trovaOspite = (guestId) => guests.find(g => g.id === guestId)
+  const trovaCamera = (roomId) => rooms.find(r => String(r.id) === String(roomId))
 
   const gestisciInputCamera = (e) => {
     const { name, value, type, checked } = e.target
@@ -65,149 +66,304 @@ function DashboardPage() {
     setTimeout(() => setSuccessoCamera(false), 3000)
   }
 
+  const gestisciInputDocumento = (e) => {
+    const { name, value } = e.target
+    setDatiDocumento(prev => ({ ...prev, [name]: value }))
+  }
+
+  const apriCheckin = (booking) => {
+    setCheckinAperto(booking.id)
+    setDatiDocumento({
+      dataNascita: '', luogoNascita: '', indirizzo: '', cittadinanza: '',
+      tipoDocumento: "Carta d'identità", numeroDocumento: '', luogoRilascio: '',
+    })
+  }
+
+  const confermaCheckin = async (booking) => {
+    if (!datiDocumento.numeroDocumento) {
+      alert('Numero documento obbligatorio per il check-in')
+      return
+    }
+    await dispatch(checkInBooking({
+      bookingId: booking.id,
+      guestId: booking.guestId,
+      datiDocumento,
+    }))
+    setCheckinAperto(null)
+  }
+
+  const gestisciCheckout = async (booking) => {
+    await dispatch(checkOutBooking(booking))
+  }
+
+  const liberaCamera = (camera) => {
+    dispatch(updateRoom({ id: camera.id, data: { occupata: false } }))
+  }
+
+  const cardStyle = {
+    background: 'var(--dark-card)', border: '1px solid var(--dark-border)',
+    borderRadius: '12px', padding: '1.2rem', flex: 1, minWidth: '180px',
+  }
+  const inputStyle = {
+    display: 'block', width: '100%', padding: '0.6rem', marginTop: '0.4rem',
+    background: 'var(--dark-card)', border: '1px solid var(--dark-border)',
+    borderRadius: '8px', color: 'inherit', fontSize: '13px',
+  }
+  const thStyle = { padding: '0.7rem', textAlign: 'left', fontSize: '12px', fontWeight: '500', color: 'var(--text-muted)' }
+  const tdStyle = { padding: '0.7rem', fontSize: '13px', borderBottom: '1px solid var(--dark-border)' }
+  const btnAzione = (bg, color) => ({
+    background: bg, color, border: 'none', padding: '0.4rem 0.8rem',
+    cursor: 'pointer', borderRadius: '6px', fontSize: '12px', marginRight: '0.4rem',
+  })
+
+  const statoLabel = {
+    confermata: 'Confermata',
+    in_corso: 'In casa',
+    completata: 'Completata',
+  }
+
+  const filtri = [
+    { key: 'confermata', label: 'In arrivo' },
+    { key: 'in_corso', label: 'In casa' },
+    { key: 'completata', label: 'Partiti' },
+    { key: 'tutte', label: 'Tutte' },
+  ]
+
   return (
     <div style={{ padding: '2rem' }}>
-      <h1>📊 Dashboard — {user?.role?.toUpperCase()}</h1>
+      <h1 style={{ fontSize: '22px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <i className="ti ti-door-enter" style={{ color: '#b49650' }}></i>
+        Gestione — {user?.role?.toUpperCase()}
+      </h1>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        <div style={{ background: '#e8f5e9', padding: '1.5rem', borderRadius: '8px', minWidth: '180px' }}>
-          <h3>🛏️ Camere Totali</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold' }}>{rooms.length}</p>
+      <div style={{ display: 'flex', gap: '1rem', margin: '1.5rem 0', flexWrap: 'wrap' }}>
+        <div style={cardStyle}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Camere totali</div>
+          <div style={{ fontSize: '24px', fontWeight: '600' }}>{rooms.length}</div>
         </div>
-        <div style={{ background: '#e3f2fd', padding: '1.5rem', borderRadius: '8px', minWidth: '180px' }}>
-          <h3>✅ Disponibili</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#2e7d32' }}>
-            {rooms.filter(r => !r.occupata).length}
-          </p>
+        <div style={cardStyle}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Disponibili</div>
+          <div style={{ fontSize: '24px', fontWeight: '600', color: '#5db87a' }}>{rooms.filter(r => !r.occupata).length}</div>
         </div>
-        <div style={{ background: '#fff3e0', padding: '1.5rem', borderRadius: '8px', minWidth: '180px' }}>
-          <h3>📋 Prenotazioni</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#e65100' }}>{bookings.length}</p>
+        <div style={cardStyle}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Prenotazioni</div>
+          <div style={{ fontSize: '24px', fontWeight: '600', color: '#5b9bd5' }}>{bookings.length}</div>
         </div>
-        <div style={{ background: '#fce4ec', padding: '1.5rem', borderRadius: '8px', minWidth: '180px' }}>
-          <h3>💰 Guadagni Totali</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#c62828' }}>€{totaleGuadagni}</p>
+        <div style={cardStyle}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Guadagni totali</div>
+          <div style={{ fontSize: '24px', fontWeight: '600', color: '#b49650' }}>€{totaleGuadagni}</div>
         </div>
-        <div style={{ background: '#f3e5f5', padding: '1.5rem', borderRadius: '8px', minWidth: '180px' }}>
-          <h3>🅿️ Parcheggi</h3>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#6a1b9a' }}>
-            {parkings.filter(p => !p.occupato).length} liberi
-          </p>
+        <div style={cardStyle}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Parcheggi liberi</div>
+          <div style={{ fontSize: '24px', fontWeight: '600' }}>{parkings.filter(p => !p.occupato).length}</div>
         </div>
       </div>
 
-      <h2>📋 Lista Prenotazioni</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
-        <thead>
-          <tr style={{ background: '#1a1a2e', color: 'white' }}>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>ID</th>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>Camera</th>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>Check-in</th>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>Check-out</th>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>Notti</th>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>Totale</th>
-            <th style={{ padding: '0.7rem', textAlign: 'left' }}>Stato</th>
-            {user?.role === 'admin' && <th style={{ padding: '0.7rem' }}>Azioni</th>}
-          </tr>
-        </thead>
-        <tbody>
-          {bookings.map(booking => (
-            <tr key={booking.id} style={{ borderBottom: '1px solid #ddd' }}>
-              <td style={{ padding: '0.7rem' }}>#{booking.id}</td>
-              <td style={{ padding: '0.7rem' }}>Camera {booking.roomId}</td>
-              <td style={{ padding: '0.7rem' }}>{booking.checkIn}</td>
-              <td style={{ padding: '0.7rem' }}>{booking.checkOut}</td>
-              <td style={{ padding: '0.7rem' }}>{booking.notti}</td>
-              <td style={{ padding: '0.7rem' }}>€{booking.totale}</td>
-              <td style={{ padding: '0.7rem' }}>{booking.stato}</td>
-              {user?.role === 'admin' && (
-                <td style={{ padding: '0.7rem' }}>
-                  <button onClick={() => dispatch(removeBooking(booking))}
-                    style={{ background: '#e53935', color: 'white', border: 'none', padding: '0.3rem 0.7rem', cursor: 'pointer', borderRadius: '4px' }}>
-                    Elimina
-                  </button>
-                </td>
-              )}
-            </tr>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem', flexWrap: 'wrap', gap: '0.6rem' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: '600' }}>Prenotazioni</h2>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {filtri.map(f => (
+            <button key={f.key} onClick={() => setFiltroStato(f.key)} style={{
+              padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '12px', cursor: 'pointer',
+              border: '1px solid var(--dark-border)',
+              background: filtroStato === f.key ? '#b49650' : 'var(--dark-card)',
+              color: filtroStato === f.key ? '#0d1b2a' : 'var(--text-muted)',
+              fontWeight: filtroStato === f.key ? '600' : '400',
+            }}>
+              {f.label}
+            </button>
           ))}
-        </tbody>
-      </table>
+        </div>
+      </div>
+
+      <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: '12px', overflow: 'hidden', marginBottom: '2rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--dark-border)' }}>
+              <th style={thStyle}>ID</th>
+              <th style={thStyle}>Ospite</th>
+              <th style={thStyle}>Camera</th>
+              <th style={thStyle}>Check-in</th>
+              <th style={thStyle}>Check-out</th>
+              <th style={thStyle}>Totale</th>
+              <th style={thStyle}>Stato</th>
+              <th style={thStyle}>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings
+              .filter(b => filtroStato === 'tutte' || b.stato === filtroStato)
+              .map(booking => {
+                const ospite = trovaOspite(booking.guestId)
+                const camera = trovaCamera(booking.roomId)
+                return (
+                  <tr key={booking.id}>
+                    <td style={tdStyle}>#{String(booking.id).slice(0, 5)}</td>
+                    <td style={tdStyle}>{ospite ? `${ospite.nome} ${ospite.cognome}` : '—'}</td>
+                    <td style={tdStyle}>{camera ? camera.numeroStanza : booking.roomId}</td>
+                    <td style={tdStyle}>{booking.checkIn}</td>
+                    <td style={tdStyle}>{booking.checkOut}</td>
+                    <td style={tdStyle}>€{booking.totale}</td>
+                    <td style={tdStyle}>{statoLabel[booking.stato] || booking.stato}</td>
+                    <td style={tdStyle}>
+                      {booking.stato === 'confermata' && (
+                        <button onClick={() => apriCheckin(booking)} style={btnAzione('rgba(91,155,213,0.15)', '#5b9bd5')}>
+                          Check-in
+                        </button>
+                      )}
+                      {booking.stato === 'in_corso' && (
+                        <button onClick={() => gestisciCheckout(booking)} style={btnAzione('rgba(93,184,122,0.15)', '#5db87a')}>
+                          Check-out
+                        </button>
+                      )}
+                      {user?.role === 'admin' && (
+                        <button onClick={() => dispatch(removeBooking(booking))} style={btnAzione('rgba(224,112,112,0.15)', '#e07070')}>
+                          Elimina
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+          </tbody>
+        </table>
+      </div>
+
+      {checkinAperto && (
+        <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: '12px', padding: '1.5rem', marginBottom: '2rem', maxWidth: '600px' }}>
+          <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '1rem', color: '#b49650' }}>
+            Check-in — Documento ospite
+          </h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Data di nascita</label>
+              <input type="date" name="dataNascita" value={datiDocumento.dataNascita} onChange={gestisciInputDocumento} style={inputStyle} />
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Luogo di nascita</label>
+              <input name="luogoNascita" value={datiDocumento.luogoNascita} onChange={gestisciInputDocumento} style={inputStyle} />
+            </div>
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Indirizzo</label>
+            <input name="indirizzo" value={datiDocumento.indirizzo} onChange={gestisciInputDocumento} style={inputStyle} />
+          </div>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Cittadinanza</label>
+            <input name="cittadinanza" value={datiDocumento.cittadinanza} onChange={gestisciInputDocumento} style={inputStyle} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Tipo documento</label>
+              <select name="tipoDocumento" value={datiDocumento.tipoDocumento} onChange={gestisciInputDocumento} style={inputStyle}>
+                <option>Carta d'identità</option>
+                <option>Passaporto</option>
+                <option>Patente</option>
+              </select>
+            </div>
+            <div>
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>N. documento</label>
+              <input name="numeroDocumento" value={datiDocumento.numeroDocumento} onChange={gestisciInputDocumento} style={inputStyle} />
+            </div>
+          </div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Luogo di rilascio</label>
+            <input name="luogoRilascio" value={datiDocumento.luogoRilascio} onChange={gestisciInputDocumento} style={inputStyle} />
+          </div>
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <button onClick={() => confermaCheckin(bookings.find(b => b.id === checkinAperto))} style={{
+              flex: 1, padding: '0.7rem', cursor: 'pointer', background: '#b49650',
+              color: '#0d1b2a', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
+            }}>
+              Conferma Check-in
+            </button>
+            <button onClick={() => setCheckinAperto(null)} style={{
+              padding: '0.7rem 1rem', cursor: 'pointer', background: 'transparent',
+              color: 'var(--text-muted)', border: '1px solid var(--dark-border)', borderRadius: '8px', fontSize: '13px',
+            }}>
+              Annulla
+            </button>
+          </div>
+        </div>
+      )}
+
+      <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '0.8rem' }}>Camere</h2>
+      <div style={{ background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: '12px', overflow: 'hidden', marginBottom: '2rem' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--dark-border)' }}>
+              <th style={thStyle}>Stanza</th>
+              <th style={thStyle}>Tipo</th>
+              <th style={thStyle}>Prezzo</th>
+              <th style={thStyle}>Stato</th>
+              <th style={thStyle}>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rooms.map(camera => (
+              <tr key={camera.id}>
+                <td style={tdStyle}>{camera.numeroStanza}</td>
+                <td style={tdStyle}>{camera.tipo}</td>
+                <td style={tdStyle}>€{camera.prezzoNotte}/notte</td>
+                <td style={tdStyle}>{camera.occupata ? 'Occupata' : 'Disponibile'}</td>
+                <td style={tdStyle}>
+                  {camera.occupata && (
+                    <button onClick={() => liberaCamera(camera)} style={btnAzione('rgba(93,184,122,0.15)', '#5db87a')}>
+                      Libera
+                    </button>
+                  )}
+                  {user?.role === 'admin' && (
+                    <button onClick={() => dispatch(removeRoom(camera.id))} style={btnAzione('rgba(224,112,112,0.15)', '#e07070')}>
+                      Elimina
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {user?.role === 'admin' && (
         <>
-          <h2>🛏️ Gestione Camere</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem' }}>
-            <thead>
-              <tr style={{ background: '#1a1a2e', color: 'white' }}>
-                <th style={{ padding: '0.7rem', textAlign: 'left' }}>Stanza</th>
-                <th style={{ padding: '0.7rem', textAlign: 'left' }}>Tipo</th>
-                <th style={{ padding: '0.7rem', textAlign: 'left' }}>Prezzo</th>
-                <th style={{ padding: '0.7rem', textAlign: 'left' }}>Stato</th>
-                <th style={{ padding: '0.7rem' }}>Azioni</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rooms.map(camera => (
-                <tr key={camera.id} style={{ borderBottom: '1px solid #ddd' }}>
-                  <td style={{ padding: '0.7rem' }}>{camera.numeroStanza}</td>
-                  <td style={{ padding: '0.7rem' }}>{camera.tipo}</td>
-                  <td style={{ padding: '0.7rem' }}>€{camera.prezzoNotte}/notte</td>
-                  <td style={{ padding: '0.7rem' }}>{camera.occupata ? '🔴 Occupata' : '🟢 Disponibile'}</td>
-                  <td style={{ padding: '0.7rem' }}>
-                    <button onClick={() => dispatch(removeRoom(camera.id))}
-                      style={{ background: '#e53935', color: 'white', border: 'none', padding: '0.3rem 0.7rem', cursor: 'pointer', borderRadius: '4px' }}>
-                      Elimina
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <h2>➕ Aggiungi Nuova Camera</h2>
-          <form onSubmit={gestisciNuovaCamera} style={{ maxWidth: '500px' }}>
+          <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '0.8rem' }}>Aggiungi nuova camera</h2>
+          <form onSubmit={gestisciNuovaCamera} style={{ maxWidth: '500px', background: 'var(--dark-card)', border: '1px solid var(--dark-border)', borderRadius: '12px', padding: '1.5rem' }}>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Tipo camera</label>
-              <select name="tipo" value={nuovaCamera.tipo} onChange={gestisciInputCamera}
-                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }}>
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Tipo camera</label>
+              <select name="tipo" value={nuovaCamera.tipo} onChange={gestisciInputCamera} style={inputStyle}>
                 <option value="singola">Singola</option>
                 <option value="doppia">Doppia</option>
                 <option value="suite">Suite</option>
               </select>
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Numero stanza</label>
-              <input type="number" name="numeroStanza" value={nuovaCamera.numeroStanza}
-                onChange={gestisciInputCamera}
-                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }} />
-              {formCameraErrors.numeroStanza && <span style={{ color: 'red' }}>{formCameraErrors.numeroStanza}</span>}
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Numero stanza</label>
+              <input type="number" name="numeroStanza" value={nuovaCamera.numeroStanza} onChange={gestisciInputCamera} style={inputStyle} />
+              {formCameraErrors.numeroStanza && <span style={{ color: '#e07070', fontSize: '12px' }}>{formCameraErrors.numeroStanza}</span>}
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Prezzo per notte (€)</label>
-              <input type="number" name="prezzoNotte" value={nuovaCamera.prezzoNotte}
-                onChange={gestisciInputCamera}
-                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }} />
-              {formCameraErrors.prezzoNotte && <span style={{ color: 'red' }}>{formCameraErrors.prezzoNotte}</span>}
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Prezzo per notte (€)</label>
+              <input type="number" name="prezzoNotte" value={nuovaCamera.prezzoNotte} onChange={gestisciInputCamera} style={inputStyle} />
+              {formCameraErrors.prezzoNotte && <span style={{ color: '#e07070', fontSize: '12px' }}>{formCameraErrors.prezzoNotte}</span>}
             </div>
             <div style={{ marginBottom: '1rem' }}>
-              <label>Descrizione</label>
-              <textarea name="descrizione" value={nuovaCamera.descrizione}
-                onChange={gestisciInputCamera} rows={3}
-                style={{ display: 'block', width: '100%', padding: '0.5rem', marginTop: '0.3rem' }} />
-              {formCameraErrors.descrizione && <span style={{ color: 'red' }}>{formCameraErrors.descrizione}</span>}
+              <label style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Descrizione</label>
+              <textarea name="descrizione" value={nuovaCamera.descrizione} onChange={gestisciInputCamera} rows={3} style={inputStyle} />
+              {formCameraErrors.descrizione && <span style={{ color: '#e07070', fontSize: '12px' }}>{formCameraErrors.descrizione}</span>}
             </div>
             {nuovaCamera.tipo === 'doppia' && (
-              <div style={{ marginBottom: '1rem' }}>
+              <div style={{ marginBottom: '1rem', fontSize: '13px' }}>
                 <label>
-                  <input type="checkbox" name="lettoAggiuntivo" checked={nuovaCamera.lettoAggiuntivo}
-                    onChange={gestisciInputCamera} style={{ marginRight: '0.5rem' }} />
+                  <input type="checkbox" name="lettoAggiuntivo" checked={nuovaCamera.lettoAggiuntivo} onChange={gestisciInputCamera} style={{ marginRight: '0.5rem' }} />
                   Letto aggiuntivo (+€20/notte)
                 </label>
               </div>
             )}
-            {successoCamera && <p style={{ color: 'green' }}>✅ Camera aggiunta con successo!</p>}
-            <button type="submit"
-              style={{ width: '100%', padding: '0.7rem', cursor: 'pointer', background: '#1a1a2e', color: 'white', border: 'none', borderRadius: '4px' }}>
+            {successoCamera && <p style={{ color: '#5db87a', fontSize: '13px' }}>Camera aggiunta con successo!</p>}
+            <button type="submit" style={{
+              width: '100%', padding: '0.7rem', cursor: 'pointer', background: '#b49650',
+              color: '#0d1b2a', border: 'none', borderRadius: '8px', fontSize: '13px', fontWeight: '600',
+            }}>
               Aggiungi Camera
             </button>
           </form>

@@ -3,6 +3,7 @@ import authReducer from '../features/auth/authSlice'
 import roomsReducer from '../features/rooms/roomsSlice'
 import bookingsReducer from '../features/bookings/bookingsSlice'
 import parkingsReducer from '../features/parkings/parkingsSlice'
+import guestsReducer from '../features/guests/guestsSlice'
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     rooms: roomsReducer,
     bookings: bookingsReducer,
     parkings: parkingsReducer,
+    guests: guestsReducer,
   },
 })
 

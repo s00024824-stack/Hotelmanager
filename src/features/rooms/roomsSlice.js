@@ -25,6 +25,18 @@ export const addRoom = createAsyncThunk(
   }
 )
 
+export const updateRoom = createAsyncThunk(
+  'rooms/update',
+  async ({ id, data }, { rejectWithValue }) => {
+    try {
+      const response = await localApi.patch(`/rooms/${id}`, data)
+      return response.data
+    } catch (error) {
+      return rejectWithValue(error.message)
+    }
+  }
+)
+
 export const removeRoom = createAsyncThunk(
   'rooms/remove',
   async (Id, { rejectWithValue }) => {
@@ -68,6 +80,10 @@ const roomsSlice = createSlice({
       })
       .addCase(addRoom.fulfilled, (state, action) => {
         state.items.push(action.payload)
+      })
+      .addCase(updateRoom.fulfilled, (state, action) => {
+        const index = state.items.findIndex(r => r.id === action.payload.id)
+        if (index !== -1) state.items[index] = action.payload
       })
       .addCase(removeRoom.fulfilled, (state, action) => {
         state.items = state.items.filter(r => r.id !== action.payload)

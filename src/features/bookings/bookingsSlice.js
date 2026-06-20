@@ -28,6 +28,36 @@ export const addBooking = createAsyncThunk(
     }
  }
 )
+
+export const checkInBooking = createAsyncThunk(
+    'bookings/checkIn',
+    async ({ bookingId, guestId, datiDocumento }, { rejectWithValue }) => {
+        try {
+            await localApi.patch(`/guests/${guestId}`, datiDocumento)
+            const response = await localApi.patch(`/bookings/${bookingId}`, { stato: 'in_corso' })
+            return response.data
+        } catch (error) {
+            return rejectWithValue(error.message)
+        }
+    }
+)
+
+export const checkOutBooking = createAsyncThunk(
+    'bookings/checkOut',
+    async (booking, { rejectWithValue }) => {
+        try {
+            const response = await localApi.patch(`/bookings/${booking.id}`, { stato: 'completata', pagamento: 'saldato' })
+            await localApi.patch(`/rooms/${booking.roomId}`, { occupata: false })
+            if (booking.parkingId) {
+                await localApi.patch(`/parkings/${booking.parkingId}`, { occupato: false })
+            }
+            return response.data
+        } catch (error) {
+            return rejectWithValue(error.message)
+        }
+    }
+)
+
 export const removeBooking = createAsyncThunk(
     'bookings/delete',
     async (booking,{rejectWithValue}) => {
@@ -72,6 +102,14 @@ const bookingsSlice = createSlice({
         })
         .addCase(removeBooking.fulfilled, (state,action) => {
            state.items = state.items.filter(b => b.id !== action.payload)
+        })
+        .addCase(checkInBooking.fulfilled, (state, action) => {
+           const index = state.items.findIndex(b => b.id === action.payload.id)
+           if (index !== -1) state.items[index] = action.payload
+        })
+        .addCase(checkOutBooking.fulfilled, (state, action) => {
+           const index = state.items.findIndex(b => b.id === action.payload.id)
+           if (index !== -1) state.items[index] = action.payload
         })
 
     }

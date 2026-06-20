@@ -14,7 +14,7 @@
       "email": "receptionist@hotel.com",
       "password": "recep123",
       "role": "receptionist",
-      "username": "Mario Rossi",
+      "username": "Vincenzo Chirivi ",
       "avatar": "",
       "bio": ""
     }
@@ -43,7 +43,7 @@
       "tipo": "suite",
       "numeroStanza": 201,
       "prezzoNotte": 250,
-      "occupata": true,
+      "occupata": false,
       "descrizione": "Suite di lusso con vista mare",
       "lettoAggiuntivo": false
     },
@@ -79,7 +79,7 @@
       "tipo": "coperto",
       "numero": "P03",
       "prezzoNotte": 25,
-      "occupato": true,
+      "occupato": false,
       "descrizione": "Posto auto coperto al piano interrato"
     },
     {
@@ -93,26 +93,40 @@
   ],
   "bookings": [
     {
-      "id": "1",
-      "userId": 3,
-      "roomId": 3,
-      "parkingId": 3,
-      "checkIn": "2025-06-01",
-      "checkOut": "2025-06-05",
-      "notti": 4,
-      "totale": 1100,
-      "stato": "confermata"
-    },
-    {
       "userId": "2",
+      "guestId": "87eMkD4eV-Y",
       "roomId": "1",
       "parkingId": 1,
-      "checkIn": "2026-06-19",
+      "checkIn": "2026-06-20",
       "checkOut": "2026-06-21",
-      "notti": 2,
-      "totale": 210,
+      "notti": 1,
+      "totale": 105,
       "stato": "confermata",
-      "id": "d8vMxLhNVtE"
+      "pagamento": "da_saldare",
+      "id": "R24LtJ405TY"
+    }
+  ],
+  "guests": [
+    {
+      "nome": "Vincenzo",
+      "cognome": "Chirivi",
+      "email": "vinschiri90@gmail.com",
+      "telefono": "",
+      "id": "z3df4uR7O44",
+      "dataNascita": "1990-01-21",
+      "luogoNascita": "Tricase Le",
+      "indirizzo": "via rovigo 31 ",
+      "cittadinanza": "italiana ",
+      "tipoDocumento": "Carta d'identità",
+      "numeroDocumento": "Ca kdkdkd",
+      "luogoRilascio": "ugento "
+    },
+    {
+      "nome": "Vincenzo",
+      "cognome": "Chirivi",
+      "email": "vinschiri90@gmail.com",
+      "telefono": "",
+      "id": "87eMkD4eV-Y"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
