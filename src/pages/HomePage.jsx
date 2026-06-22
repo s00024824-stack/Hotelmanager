@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { insertRoom } from '../features/rooms/roomsSlice'
 import { insertBookings } from '../features/bookings/bookingsSlice'
 import { insertParking } from '../features/parkings/parkingsSlice'
@@ -7,6 +8,7 @@ import axios from 'axios'
 
 function HomePage() {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const { user } = useSelector(state => state.auth)
   const { items: rooms } = useSelector(state => state.rooms)
   const { items: bookings } = useSelector(state => state.bookings)
@@ -15,10 +17,14 @@ function HomePage() {
   const [meteoError, setMeteoError] = useState(null)
 
   useEffect(() => {
+    if (!user) {
+      navigate('/login')
+      return
+    }
     dispatch(insertRoom())
     dispatch(insertBookings())
     dispatch(insertParking())
-  }, [dispatch])
+  }, [user, dispatch])
 
   useEffect(() => {
     const fetchMeteo = async () => {
@@ -61,6 +67,8 @@ function HomePage() {
     color: 'white',
   }
 
+  if (!user) return null
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -72,7 +80,7 @@ function HomePage() {
     }}>
       <h1 style={{ fontSize: '24px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white' }}>
         <i className="ti ti-building" style={{ color: '#b49650' }}></i>
-        Benvenuto, {user ? user.username : 'Ospite'}
+        Benvenuto, {user.username}
       </h1>
       <p style={{ color: 'rgba(255,255,255,0.7)', marginTop: '0.3rem' }}>
         Gestionale Hotel — {new Date().toLocaleDateString('it-IT')}
