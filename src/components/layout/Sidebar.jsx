@@ -20,7 +20,8 @@ function Sidebar({ theme, toggleTheme }) {
     { path: '/rooms', label: 'Camere', icon: 'ti-bed' },
     { path: '/bookings', label: 'Prenotazioni', icon: 'ti-calendar-event' },
     { path: '/planner', label: 'Planner', icon: 'ti-calendar' },
-    { path: '/dashboard', label: 'Check-in', icon: 'ti-door-enter' },,
+    { path: '/checkin', label: 'Check-in', icon: 'ti-door-enter' },
+    { path: '/gestione', label: 'Gestione', icon: 'ti-settings', adminOnly: true },
     { path: '/profile', label: 'Profilo', icon: 'ti-user' },
   ]
 

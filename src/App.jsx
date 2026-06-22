@@ -6,9 +6,11 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RoomsPage from './pages/RoomsPage'
 import RoomDetailPage from './pages/RoomDetailPage'
-import DashboardPage from './pages/DashboardPage'
-import ProfilePage from './pages/ProfilePage'
+import GestionePage from './pages/GestionePage'
+import CheckInPage from './pages/CheckInPage'
+import BookingsPage from './pages/BookingsPage'
 import PlannerPage from './pages/PlannerPage'
+import ProfilePage from './pages/ProfilePage'
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const user = useSelector(state => state.auth.user)
@@ -28,7 +30,7 @@ function App() {
   const isLoginPage = location.pathname === '/login'
 
   return (
-    <div className={theme === 'light' ? 'app-light' : ''}>
+    <div className={theme === 'light' ? 'app-light' : ''} style={{ background: 'var(--dark-bg)', color: 'var(--text-primary)', minHeight: '100vh' }}>
       {!isLoginPage && <Sidebar theme={theme} toggleTheme={toggleTheme} />}
       <div style={{ marginLeft: isLoginPage ? '0' : '220px', minHeight: '100vh' }}>
         <Routes>
@@ -36,11 +38,22 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/rooms/:id" element={<RoomDetailPage />} />
-          <Route path="/dashboard" element={
+          <Route path="/bookings" element={
             <ProtectedRoute allowedRoles={['admin', 'receptionist']}>
-              <DashboardPage />
+              <BookingsPage />
             </ProtectedRoute>
           } />
+          <Route path="/checkin" element={
+            <ProtectedRoute allowedRoles={['admin', 'receptionist']}>
+              <CheckInPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/gestione" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <GestionePage />
+            </ProtectedRoute>
+          } />
+          
           <Route path="/planner" element={
             <ProtectedRoute allowedRoles={['admin', 'receptionist']}>
               <PlannerPage />

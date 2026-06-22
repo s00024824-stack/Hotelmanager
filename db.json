@@ -5,8 +5,8 @@
       "email": "admin@hotel.com",
       "password": "admin123",
       "role": "admin",
-      "username": "Admin",
-      "avatar": "",
+      "username": "Vincenzo Admim",
+      "avatar": "https://ui-avatars.com/api/?name=Vincenzo+Chirivi&background=b49650&color=0d1b2a&size=20",
       "bio": ""
     },
     {
@@ -14,7 +14,7 @@
       "email": "receptionist@hotel.com",
       "password": "recep123",
       "role": "receptionist",
-      "username": "Vincenzo Chirivi ",
+      "username": "Vincenzo Chirivi",
       "avatar": "",
       "bio": ""
     }
@@ -25,7 +25,7 @@
       "tipo": "singola",
       "numeroStanza": 101,
       "prezzoNotte": 80,
-      "occupata": true,
+      "occupata": false,
       "descrizione": "Camera singola con vista giardino",
       "lettoAggiuntivo": false
     },
@@ -63,7 +63,7 @@
       "tipo": "coperto",
       "numero": "P01",
       "prezzoNotte": 25,
-      "occupato": true,
+      "occupato": false,
       "descrizione": "Posto auto coperto al piano interrato"
     },
     {
@@ -89,23 +89,33 @@
       "prezzoNotte": 25,
       "occupato": false,
       "descrizione": "Posto auto coperto al piano interrato"
-    }
-  ],
-  "bookings": [
+    },
     {
-      "userId": "2",
-      "guestId": "87eMkD4eV-Y",
-      "roomId": "1",
-      "parkingId": 1,
-      "checkIn": "2026-06-20",
-      "checkOut": "2026-06-21",
-      "notti": 1,
-      "totale": 105,
-      "stato": "confermata",
-      "pagamento": "da_saldare",
-      "id": "R24LtJ405TY"
+      "id": "5",
+      "tipo": "coperto",
+      "numero": "P05",
+      "prezzoNotte": 25,
+      "occupato": false,
+      "descrizione": "Posto auto coperto al piano interrato"
+    },
+    {
+      "id": "6",
+      "tipo": "coperto",
+      "numero": "P06",
+      "prezzoNotte": 25,
+      "occupato": false,
+      "descrizione": "Posto auto coperto al piano interrato"
+    },
+    {
+      "id": "7",
+      "tipo": "coperto",
+      "numero": "P07",
+      "prezzoNotte": 25,
+      "occupato": false,
+      "descrizione": "Posto auto coperto al piano interrato"
     }
   ],
+  "bookings": [],
   "guests": [
     {
       "nome": "Vincenzo",
@@ -115,18 +125,11 @@
       "id": "z3df4uR7O44",
       "dataNascita": "1990-01-21",
       "luogoNascita": "Tricase Le",
-      "indirizzo": "via rovigo 31 ",
-      "cittadinanza": "italiana ",
+      "indirizzo": "via rovigo 31",
+      "cittadinanza": "italiana",
       "tipoDocumento": "Carta d'identità",
       "numeroDocumento": "Ca kdkdkd",
-      "luogoRilascio": "ugento "
-    },
-    {
-      "nome": "Vincenzo",
-      "cognome": "Chirivi",
-      "email": "vinschiri90@gmail.com",
-      "telefono": "",
-      "id": "87eMkD4eV-Y"
+      "luogoRilascio": "ugento"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

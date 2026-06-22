@@ -37,6 +37,7 @@ function HomePage() {
   const camereDisponibili = rooms.filter(r => !r.occupata).length
   const prenotazioniAttive = bookings.filter(b => b.stato === 'confermata').length
   const parcheggiLiberi = parkings.filter(p => !p.occupato).length
+  const totaleGuadagni = bookings.reduce((acc, b) => acc + b.totale, 0)
 
   const cardStyle = {
     background: 'rgba(13,27,42,0.75)',
@@ -82,7 +83,10 @@ function HomePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
               <div style={labelStyle}>Camere disponibili</div>
-              <div style={{ ...numStyle, color: '#5db87a' }}>{camereDisponibili}<span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>/{rooms.length}</span></div>
+              <div style={{ ...numStyle, color: '#5db87a' }}>
+                {camereDisponibili}
+                <span style={{ fontSize: '14px', color: 'rgba(255,255,255,0.5)' }}>/{rooms.length}</span>
+              </div>
             </div>
             <i className="ti ti-bed" style={{ fontSize: '24px', color: '#b49650' }}></i>
           </div>
@@ -105,6 +109,16 @@ function HomePage() {
               <div style={numStyle}>{parcheggiLiberi}</div>
             </div>
             <i className="ti ti-parking" style={{ fontSize: '24px', color: '#b49650' }}></i>
+          </div>
+        </div>
+
+        <div style={cardStyle}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div>
+              <div style={labelStyle}>Incassi totali</div>
+              <div style={{ ...numStyle, color: '#b49650' }}>€{totaleGuadagni}</div>
+            </div>
+            <i className="ti ti-coin" style={{ fontSize: '24px', color: '#b49650' }}></i>
           </div>
         </div>
 

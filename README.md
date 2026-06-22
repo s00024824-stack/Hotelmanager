@@ -4,7 +4,7 @@ Progetto finale del corso Frontend Programming presso Epicode Institute of Techn
 
 ## Descrizione
 
-HotelManager è un'applicazione React per la gestione completa di un hotel, ispirata ai PMS (Property Management System) professionali utilizzati nel settore alberghiero. Permette al personale (Admin e Receptionist) di gestire camere, prenotazioni, check-in/check-out, anagrafica ospiti e parcheggi attraverso un'interfaccia moderna in stile dark theme.
+HotelManager è un'applicazione React per la gestione completa di un hotel, ispirata ai PMS (Property Management System) professionali utilizzati nel settore alberghiero. Permette al personale (Admin e Receptionist) di gestire camere, prenotazioni, check-in/check-out, anagrafica ospiti e parcheggi attraverso un'interfaccia moderna con tema dark/light.
 
 ## Tecnologie utilizzate
 
@@ -19,30 +19,33 @@ HotelManager è un'applicazione React per la gestione completa di un hotel, ispi
 ## Funzionalità principali
 
 ### Autenticazione e ruoli
-Login con autenticazione fake e due ruoli distinti (Admin e Receptionist), ciascuno con permessi e viste differenziate tramite Protected Routes.
+Login con autenticazione fake e due ruoli distinti con viste differenziate tramite Protected Routes:
+- **Receptionist** — gestione prenotazioni, check-in/check-out, planner
+- **Admin** — tutto quanto sopra, più gestione struttura (aggiunta/eliminazione camere, eliminazione prenotazioni)
+
+### Home — Dashboard
+Statistiche in tempo reale: camere disponibili, prenotazioni attive, parcheggi liberi, incassi totali e meteo di Lecce tramite OpenWeather API.
 
 ### Gestione camere
 Listing camere con filtri per tipo e disponibilità, paginazione, immagini reali per ogni tipologia (singola, doppia, suite). Calcolo automatico del totale soggiorno con supplementi (letto aggiuntivo, suite).
 
 ### Prenotazioni
-Form di prenotazione con raccolta dati del prenotante (nome, cognome, email, telefono), selezione date e parcheggio opzionale, calcolo automatico del totale.
+Pagina dedicata con elenco prenotazioni ordinate per data di check-in, filtri per stato (In arrivo, In casa, Partiti, Tutte) e form di nuova prenotazione accessibile dal dettaglio camera (nome, cognome, email, telefono, date, parcheggio opzionale, calcolo automatico totale).
 
 ### Check-in e Check-out
 Flusso completo ispirato ai gestionali alberghieri professionali:
-- Check-in: raccolta anagrafica completa dell'ospite (documento d'identità, data e luogo di nascita, cittadinanza, indirizzo)
-- Check-out: liberazione automatica di camera e parcheggio, aggiornamento stato pagamento
-
-### Filtri prenotazioni
-Vista filtrata per stato (In arrivo, In casa, Partiti, Tutte), replicando l'interfaccia di un PMS reale.
+- La camera resta **disponibile** al momento della prenotazione
+- **Check-in**: raccolta anagrafica completa del documento ospite (tipo documento, numero, luogo rilascio, data e luogo nascita, cittadinanza, indirizzo) — la camera diventa occupata solo a questo punto
+- **Check-out**: liberazione automatica di camera e parcheggio, aggiornamento stato pagamento a saldato
 
 ### Planner
-Vista calendario stile Gantt con camere sulle righe e giorni del mese sulle colonne, barre colorate per stato prenotazione, navigazione tra mesi.
+Vista calendario stile Gantt con camere sulle righe e giorni del mese sulle colonne, barre colorate per stato prenotazione (blu=confermata, verde=in casa, grigio=completata), navigazione tra mesi.
 
-### Dashboard amministrativa
-Statistiche in tempo reale (camere disponibili, prenotazioni attive, guadagni totali, parcheggi liberi), gestione camere (aggiunta, eliminazione, liberazione manuale), gestione prenotazioni.
+### Gestione Admin
+Sezione esclusiva per l'admin: statistiche complete, tabella camere con aggiunta/eliminazione/liberazione manuale, tabella prenotazioni con eliminazione.
 
 ### Tema chiaro/scuro
-Toggle dark/light mode gestito con useState e variabili CSS dinamiche.
+Toggle dark/light mode gestito con useState e variabili CSS dinamiche, accessibile dalla sidebar.
 
 ## Struttura del progetto
 src/
@@ -51,7 +54,9 @@ src/
 
 ├── features/         → Slice Redux (auth, rooms, bookings, parkings, guests)
 
-├── pages/            → Pagine dell'applicazione
+├── pages/            → 9 pagine (Home, Login, Camere, Dettaglio camera,
+
+│                        Prenotazioni, Check-in, Gestione, Planner, Profilo)
 
 ├── components/       → Componenti riutilizzabili (Sidebar)
 
@@ -68,6 +73,7 @@ cd Hotelmanager
 npm install
 
 ### 3. Configura le variabili d'ambiente
+
 Crea un file `.env` nella root del progetto:
 VITE_OPENWEATHER_KEY=la_tua_chiave_openweather
 

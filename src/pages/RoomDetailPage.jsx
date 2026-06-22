@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import { insertRoom, setCurrentRoom } from '../features/rooms/roomsSlice'
 import { addBooking } from '../features/bookings/bookingsSlice'
 import { addGuest } from '../features/guests/guestsSlice'
+import { insertParking } from '../features/parkings/parkingsSlice'
 
 function RoomDetailPage() {
   const { id } = useParams()
@@ -22,6 +23,7 @@ function RoomDetailPage() {
 
   useEffect(() => {
     if (rooms.length === 0) dispatch(insertRoom())
+    dispatch(insertParking())
   }, [dispatch, rooms.length])
 
   useEffect(() => {
@@ -85,7 +87,7 @@ function RoomDetailPage() {
       notti, totale, stato: 'confermata', pagamento: 'da_saldare',
     }))
     setSuccesso(true)
-    setTimeout(() => navigate('/dashboard'), 2000)
+    setTimeout(() => navigate('/bookings'), 2000)
   }
 
   if (!currentRoom) return <p style={{ padding: '2rem', color: 'var(--text-muted)' }}>Caricamento camera...</p>
@@ -115,7 +117,7 @@ function RoomDetailPage() {
         <strong>Stato:</strong> {currentRoom.occupata ? 'Occupata' : 'Disponibile'}
       </p>
 
-      {!currentRoom.occupata && user && (
+      {user && (
         <div style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid var(--dark-border)', borderRadius: '12px', background: 'var(--dark-card)' }}>
           <h2 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '1rem' }}>Nuova prenotazione</h2>
           <form onSubmit={gestisciPrenotazione}>
@@ -162,7 +164,7 @@ function RoomDetailPage() {
               <select name="parkingId" value={formData.parkingId} onChange={gestisciInput} style={inputStyle}>
                 <option value="">Nessun parcheggio</option>
                 {parkings.filter(p => !p.occupato).map(p => (
-                  <option key={p.id} value={p.id}>{p.numero} — €25/notte</option>
+                  <option key={p.id} value={p.id}>{p.numero} — €{p.prezzoNotte}/notte</option>
                 ))}
               </select>
             </div>
